@@ -59,3 +59,26 @@ author-supplied `dates5.tex`.
 > Appendix C, *Calendrical Calculations* 3rd ed. → author-supplied LaTeX (`dates1–5.tex`) →
 > `sed` (`trasformLatexDates2Cvs`) → CSV → `unittest` oracle (`appendixCUnitTest.py`), with the
 > astronomical new-moon column overridden by author errata (`dates5.errata.csv`).
+
+## Ultimate-Edition re-baseline (4th edition)
+
+The Ultimate Edition revised the **Delta-T model** (`ephemeris-correction`), which shifts
+every astronomical quantity by ~1e-3°. When pycalcal's astronomy was updated to the 4th
+edition (see `docs/ultimate-port-plan.md` Tier 3), the 3rd-edition panel-5 sample values
+(`dates5.tex`) and a few astronomical fixtures no longer matched. They were re-baselined to
+the Ultimate astronomy:
+
+- `dates5.ultimate.csv` (committed) — panel-5 columns (solar longitude, next solstice/equinox,
+  lunar longitude, next new moon, dawn-in-Paris, sunset-in-Jerusalem) recomputed for the 33
+  sample dates; `AppendixCTable5TestCaseBase` now loads it instead of `dates5.csv` +
+  `dates5.errata.csv`.
+- `dates4_ms.ultimate.csv` (committed) — the astronomical major-solar-term column, recomputed
+  (the Chinese *date* and day-name still match 3rd-edition exactly).
+- Hardcoded astronomy fixtures (`declinations`, `right_ascensions`, `lunar_altitudes`,
+  `urbana_winter`, the year-333 `dynamical_from_universal` example) updated in `pycalcal.nw`.
+
+The independent correctness check is the SBCL differential harness (`tools/diff_check.py`),
+which validates pycalcal against the Ultimate Lisp oracle; these re-baselined unittest values
+are Ultimate-edition regression snapshots. The integer `dates1`–`dates4` calendar columns are
+unchanged and still validate against the author-supplied 3rd-edition data (they are identical
+across editions).

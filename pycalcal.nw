@@ -3980,9 +3980,10 @@ def `urbana_winter(g_year):
 
 <<astronomical algorithms tests>>=
 def `testUrbanaWinter(self):
-    # from the values in the book pag 191
+    # Ultimate Edition re-baseline (4th-edition Delta-T model);
+    # was 730475.31751 under the 3rd-edition astronomy.
     self.assertAlmostEqual(
-        urbana_winter(2000), 730475.31751, 5)
+        urbana_winter(2000), 730475.317551, 5)
 
 
 <<time and astronomy unit test>>=
@@ -3994,41 +3995,43 @@ class `TimeAndAstronomySmokeTestCase(unittest.TestCase):
                     645554, 664224, 671401, 694799, 704424, 708842, 709409,
                     709580, 727274, 728714, 744313, 764652]
 
-        self.declinations = [341.009933681, 344.223866057, 344.349150723,
-                             343.080796014, 6.111045686, 23.282088850,
-                             11.054626067, 20.772095601, 350.530615797,
-                             26.524557874, 24.624220236, 341.329137381,
-                             22.952455871, 28.356788216, 11.708349719,
-                             17.836387256, 1.234462343, 342.613034686,
-                             339.494416096, 10.077195527, 356.273352051,
-                             10.933004147, 333.162727246, 12.857424363,
-                             342.981182734, 8.352097710, 342.717593219,
-                             359.480653210, 339.868605556, 6.747953072,
-                             15.403930316, 5.935073706, 6.502803786]
+        # Ultimate Edition re-baseline (4th-edition Delta-T model). Values
+        # regenerated; cross-validated against the Ultimate Lisp astronomy.
+        self.declinations = [341.015275793, 344.238014983, 344.345438633,
+                             343.08370822, 6.10159694, 23.28078693,
+                             11.048589022, 20.771185309, 350.493561693,
+                             26.530372727, 24.612825757, 341.32475916,
+                             22.966646634, 28.355760371, 11.701544766,
+                             17.833786475, 1.237256146, 342.610596993,
+                             339.494460444, 10.077037701, 356.273352053,
+                             10.933004147, 333.162727246, 12.857424361,
+                             342.981182735, 8.352097711, 342.717593219,
+                             359.480653209, 339.868605556, 6.747999249,
+                             15.403893153, 5.931270936, 6.502561155]
 
-        self.right_ascensions = [243.344057675, 204.985406451, 210.404938685,
-                                 292.982801046, 157.347243474, 109.710580543,
-                                 38.206587532, 99.237553669, 334.622772431,
-                                 92.594013257, 77.002562902, 275.265641321,
-                                 132.240141523, 89.495057657, 21.938682002,
-                                 51.336108524, 189.141475514, 323.504045205,
-                                 317.763636501, 146.668234288, 183.868193626,
-                                 143.441024476, 251.771505962, 154.432825924,
-                                 288.759213491, 24.368877399, 291.218608152,
-                                 190.563965149, 285.912816020, 152.814362172,
-                                 50.014265486, 26.456502208, 177.918419842]
+        self.right_ascensions = [243.323055186, 204.944151754, 210.41332288,
+                                 293.006566659, 157.376679054, 109.716824224,
+                                 38.183799264, 99.157299122, 334.546088002,
+                                 92.522289518, 76.931241516, 275.204566812,
+                                 132.191369409, 89.454742937, 21.916301434,
+                                 51.319367251, 189.13438507, 323.498096919,
+                                 317.763829302, 146.668810201, 183.86819362,
+                                 143.441024476, 251.771505962, 154.432825928,
+                                 288.759213495, 24.3688774, 291.218608155,
+                                 190.563965153, 285.912816024, 152.814255653,
+                                 50.014058037, 26.447525288, 177.919011601]
 
-        self.lunar_altitudes = [-11.580406490, -13.996642398, -72.405467670,
-                                 -26.949751162, 60.491536818, -32.333449636,
-                                 43.325012802, -28.913935286, 20.844069354,
-                                 -9.603298107, -13.290409748, 20.650429381,
-                                 -9.068998404, -24.960604514, -34.865669400,
-                                 -40.121041983, -50.193172697, -39.456259107,
-                                 32.614203610, -46.078519304, -51.828340409,
-                                 -42.577971851, -15.990046584, 28.658077283,
-                                 22.718206310, 61.618573945, -26.504789606,
-                                 32.371736207, -38.544325288, 31.594345546,
-                                 -28.348377620, 30.478724056, -43.754783219]
+        self.lunar_altitudes = [-11.594899705, -13.955164798, -72.411732626,
+                                 -26.928288405, 60.469961279, -32.333006773,
+                                 43.30308984, -28.953276193, 20.878552492,
+                                 -9.646005258, -13.34426471, 20.687047573,
+                                 -9.09384521, -24.947308204, -34.884157019,
+                                 -40.123330877, -50.187103385, -39.452351584,
+                                 32.614169815, -46.078514504, -51.828340428,
+                                 -42.577971847, -15.990046563, 28.658077273,
+                                 22.718206318, 61.618573944, -26.5047896,
+                                 32.371736215, -38.544325284, 31.594283096,
+                                 -28.348533062, 30.469191697, -43.75467762]
 
         self.dusks = [-214193.22, -61387.297, 25468.746, 49216.734,
                        171306.7, 210154.78, 253426.7, 369739.78,
@@ -4230,12 +4233,14 @@ def `testDynamicalFromUniversal(self):
     # I then follow Calendrica Calculations (and NASA)
     date = gregorian_date(333, FEBRUARY, 6)
     time = time_from_clock([6, 0, 0])
-    utc  = fixed_from_gregorian(date) + time 
+    utc  = fixed_from_gregorian(date) + time
     td   = dynamical_from_universal(utc)
     clk  = clock_from_moment(td)
-    self.assertEqual(hour(clk), 7)
-    self.assertEqual(minute(clk), 57)
-    self.assertAlmostEqual(seconds(clk), 54.66054, 4)
+    # Ultimate Edition re-baseline: the 4th-edition Delta-T model gives a
+    # different ancient-date correction (was 7:57:54.66 in the 3rd edition).
+    self.assertEqual(hour(clk), 8)
+    self.assertEqual(minute(clk), 2)
+    self.assertAlmostEqual(seconds(clk), 39.726667, 4)
 
 
 <<astronomical lunar calendars>>=
@@ -4266,14 +4271,25 @@ def `sidereal_from_moment(tee):
 # see lines 3140-3176 in calendrica-3.0.cl
 def `ephemeris_correction(tee):
     """Return Dynamical Time minus Universal Time (in days) for
-    moment, tee.  Adapted from "Astronomical Algorithms"
-    by Jean Meeus, Willmann_Bell, Inc., 1991."""
+    moment, tee.  Ultimate Edition (4th ed., App. D) revision: the
+    Espenak & Meeus Delta-T model, replacing the 3rd-edition Meeus 1991
+    formulae (the sole root cause of the 3rd-vs-4th astronomy float drift)."""
     year = gregorian_year_from_fixed(ifloor(tee))
     c = gregorian_date_difference(gregorian_date(1900, JANUARY, 1),
                                   gregorian_date(year, JULY, 1)) / mpf(36525)
-    if (1988 <= year <= 2019):
-        return 1/86400 * (year - 1933)
-    elif (1900 <= year <= 1987):
+    y2000 = year - 2000
+    if (2051 <= year <= 2150):
+        return (1/86400 *
+                (-20 + 32 * (((year - 1820) / mpf(100))**2) +
+                 mpf(0.5628) * (2150 - year)))
+    elif (2006 <= year <= 2050):
+        return 1/86400 * poly(y2000, [mpf(62.92), mpf(0.32217), mpf(0.005589)])
+    elif (1987 <= year <= 2005):
+        return (1/86400 *
+                poly(y2000, [mpf(63.86), mpf(0.3345), mpf(-0.060374),
+                             mpf(0.0017275), mpf(0.000651814),
+                             mpf(0.00002373599)]))
+    elif (1900 <= year <= 1986):
         return poly(c, [mpf(-0.00002), mpf(0.000297), mpf(0.025184),
                         mpf(-0.181133), mpf(0.553040), mpf(-0.861938),
                         mpf(0.677066), mpf(-0.212591)])
@@ -4284,17 +4300,25 @@ def `ephemeris_correction(tee):
                         mpf(11.636204), mpf(2.043794)])
     elif (1700 <= year <= 1799):
         return (1/86400 *
-                poly(year - 1700, [8.118780842, -0.005092142,
-                                   0.003336121, -0.0000266484]))
-    elif (1620 <= year <= 1699):
+                poly(year - 1700, [mpf(8.118780842), mpf(-0.005092142),
+                                   mpf(0.003336121), mpf(-0.0000266484)]))
+    elif (1600 <= year <= 1699):
         return (1/86400 *
-                poly(year - 1600,
-                     [mpf(196.58333), mpf(-4.0675), mpf(0.0219167)]))
+                poly(year - 1600, [mpf(120), mpf(-0.9808), mpf(-0.01532),
+                                   mpf(0.000140272128)]))
+    elif (500 <= year <= 1599):
+        return (1/86400 *
+                poly((year - 1000) / mpf(100),
+                     [mpf(1574.2), mpf(-556.01), mpf(71.23472), mpf(0.319781),
+                      mpf(-0.8503463), mpf(-0.005050998), mpf(0.0083572073)]))
+    elif (-500 < year < 500):
+        return (1/86400 *
+                poly(year / mpf(100),
+                     [mpf(10583.6), mpf(-1014.41), mpf(33.78311),
+                      mpf(-5.952053), mpf(-0.1798452), mpf(0.022174192),
+                      mpf(0.0090316521)]))
     else:
-        x = (days_from_hours(mpf(12)) +
-             gregorian_date_difference(gregorian_date(1810, JANUARY, 1),
-                                       gregorian_date(year, JANUARY, 1)))
-        return 1/86400 * (((x * x) / mpf(41048480)) - 15)
+        return 1/86400 * poly((year - 1820) / mpf(100), [-20, 0, 32])
 
 # see lines 3178-3207 in calendrica-3.0.cl
 def `equation_of_time(tee):
@@ -7558,13 +7582,18 @@ class `AppendixCTable4TestCaseBase():
         self.ahl   = [] # astronomical hindu lunar date
         self.td    = [] # tibetan date
 
+        # Ultimate Edition re-baseline: the major-solar-term column is astronomical
+        # and changed with the 4th-edition Delta-T model; load it from the Ultimate
+        # reference instead of dates4 col 8 (see docs/test-data.md).
+        ms_ult = dict((int(r[0]), float(r[1]))
+                      for r in csv.reader(open("dates4_ms.ultimate.csv", "r")))
 
         for row in reader:
             self.rd.append(int(row[0]))
             self.cd.append(chinese_date(int(row[1]), int(row[2]), int(row[3]),
                                         self._toBoolean(row[4]), int(row[5])))
             self.cn.append([int(row[6]), int(row[7])])
-            self.ms.append(float(row[8]))
+            self.ms.append(ms_ult[int(row[0])])
             self.ohs.append(hindu_solar_date(int(row[9]),
                                              int(row[10]),
                                              int(row[11])))
@@ -7713,7 +7742,13 @@ class `AppendixCTable5TestCaseBase():
         return False if c == 'f' else True
 
     def setUp(self):
-        reader = csv.reader(open("dates5.csv", "r"),
+        # Ultimate Edition re-baseline: panel-5 astronomy expected values were
+        # regenerated against the (validated) Ultimate Lisp astronomy, since the
+        # 4th-edition Delta-T model changed every solar/lunar quantity. Columns:
+        # rd, solar-longitude, next-solstice/equinox, lunar-longitude,
+        # next-new-moon, dawn-in-Paris (mod 1, or 'bogus'), sunset-in-Jerusalem
+        # (mod 1). See docs/test-data.md and docs/ultimate-check-report.md.
+        reader = csv.reader(open("dates5.ultimate.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = []
@@ -7721,24 +7756,17 @@ class `AppendixCTable5TestCaseBase():
         self.nse   = [] # next solstice/equinox
         self.ll    = [] # lunar longitude
         self.nnm   = [] # next new moon
-        self.dip   = [] # dawn in Paris
-        self.sij   = [] # sunset in Jerusalem
+        self.dip   = [] # dawn in Paris (mod 1) or BOGUS
+        self.sij   = [] # sunset in Jerusalem (mod 1)
 
         for row in reader:
             self.rd.append(int(row[0]))
             self.sl.append(float(row[1]))
             self.nse.append(float(row[2]))
             self.ll.append(float(row[3]))
-            #self.nnm.append(float(row[4])) # read from errata file
-            self.dip.append(row[5])
-            self.sij.append(row[9])
-
-        reader1 = csv.reader(open("dates5.errata.csv", "r"),
-                            delimiter=',',
-                            quoting=csv.QUOTE_NONE)
-
-        for row in reader1:
-            self.nnm.append(float(row[1]))
+            self.nnm.append(float(row[4]))
+            self.dip.append(BOGUS if row[5] == "bogus" else row[5])
+            self.sij.append(row[6])
 
  
 class `AppendixCTable5TestCase(AppendixCTable5TestCaseBase,

@@ -90,7 +90,27 @@ boundary date*. To reach full parity the update must: (1) port the revised astro
 float layer and the (b) boundary flips), (2) fix `mayan-year-bearer`, (3) add the 8 new
 functions/calendars.
 
-## Next — Phase 4 (port, each increment differential-tested)
+## Phase 4 progress
+
+- **`mayan-year-bearer`** — fixed (1654/1664 → 0). ✅
+- **Tier 3 astronomy** — root cause isolated to a single function: `ephemeris-correction`
+  (the 4th-edition Espenak & Meeus Delta-T model). All other astronomy primitives
+  (`obliquity`, `aberration`, `nutation`, coefficient tables) are unchanged; their tiny diffs
+  were pure downstream of the time shift. Porting `ephemeris-correction` moved the differential
+  from **12 divergent functions to 3**, and EXACT agreement from 45 → **53**: the float layer
+  (`solar-longitude`, `lunar-longitude`, `lunar-phase`) and the astronomy-dependent calendars
+  (observational-Islamic, Persian, French, astro-Hindu-solar) all converged. ✅
+
+  Residual differences (3 functions, ≤8 of 1664 dates): `observational-hebrew`,
+  `chinese`, `astro-hindu-lunar` — these are **mpmath(prec 50) vs IEEE-double** boundary
+  sensitivity at the ~1e-9 level in the most event-boundary-sensitive calendars, not
+  algorithmic differences. Not fixable without changing pycalcal's arithmetic substrate.
+
+  Test re-baseline: 12 astronomy fixtures updated to the Ultimate astronomy (panel-5
+  `dates5.ultimate.csv`, `dates4_ms.ultimate.csv`, and hardcoded smoke/book values). Full
+  suite: **92 OK**.
+
+## Next — remaining Phase 4 (port, each increment differential-tested)
 
 Tier 0 (astro-bahai rename, trig/unix) → Tier 1 (Akan, Icelandic, Roman) → Tier 2 (holidays)
 → Tier 3 (astronomy helpers + **revised astronomy** + crescent criteria; fixes (a)/(b)) →

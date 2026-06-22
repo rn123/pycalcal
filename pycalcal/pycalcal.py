@@ -2829,14 +2829,25 @@ MEAN_SYNODIC_MONTH = mpf(29.530588861)
 # see lines 3140-3176 in calendrica-3.0.cl
 def ephemeris_correction(tee):
     """Return Dynamical Time minus Universal Time (in days) for
-    moment, tee.  Adapted from "Astronomical Algorithms"
-    by Jean Meeus, Willmann_Bell, Inc., 1991."""
+    moment, tee.  Ultimate Edition (4th ed., App. D) revision: the
+    Espenak & Meeus Delta-T model, replacing the 3rd-edition Meeus 1991
+    formulae (the sole root cause of the 3rd-vs-4th astronomy float drift)."""
     year = gregorian_year_from_fixed(ifloor(tee))
     c = gregorian_date_difference(gregorian_date(1900, JANUARY, 1),
                                   gregorian_date(year, JULY, 1)) / mpf(36525)
-    if (1988 <= year <= 2019):
-        return 1/86400 * (year - 1933)
-    elif (1900 <= year <= 1987):
+    y2000 = year - 2000
+    if (2051 <= year <= 2150):
+        return (1/86400 *
+                (-20 + 32 * (((year - 1820) / mpf(100))**2) +
+                 mpf(0.5628) * (2150 - year)))
+    elif (2006 <= year <= 2050):
+        return 1/86400 * poly(y2000, [mpf(62.92), mpf(0.32217), mpf(0.005589)])
+    elif (1987 <= year <= 2005):
+        return (1/86400 *
+                poly(y2000, [mpf(63.86), mpf(0.3345), mpf(-0.060374),
+                             mpf(0.0017275), mpf(0.000651814),
+                             mpf(0.00002373599)]))
+    elif (1900 <= year <= 1986):
         return poly(c, [mpf(-0.00002), mpf(0.000297), mpf(0.025184),
                         mpf(-0.181133), mpf(0.553040), mpf(-0.861938),
                         mpf(0.677066), mpf(-0.212591)])
@@ -2847,17 +2858,25 @@ def ephemeris_correction(tee):
                         mpf(11.636204), mpf(2.043794)])
     elif (1700 <= year <= 1799):
         return (1/86400 *
-                poly(year - 1700, [8.118780842, -0.005092142,
-                                   0.003336121, -0.0000266484]))
-    elif (1620 <= year <= 1699):
+                poly(year - 1700, [mpf(8.118780842), mpf(-0.005092142),
+                                   mpf(0.003336121), mpf(-0.0000266484)]))
+    elif (1600 <= year <= 1699):
         return (1/86400 *
-                poly(year - 1600,
-                     [mpf(196.58333), mpf(-4.0675), mpf(0.0219167)]))
+                poly(year - 1600, [mpf(120), mpf(-0.9808), mpf(-0.01532),
+                                   mpf(0.000140272128)]))
+    elif (500 <= year <= 1599):
+        return (1/86400 *
+                poly((year - 1000) / mpf(100),
+                     [mpf(1574.2), mpf(-556.01), mpf(71.23472), mpf(0.319781),
+                      mpf(-0.8503463), mpf(-0.005050998), mpf(0.0083572073)]))
+    elif (-500 < year < 500):
+        return (1/86400 *
+                poly(year / mpf(100),
+                     [mpf(10583.6), mpf(-1014.41), mpf(33.78311),
+                      mpf(-5.952053), mpf(-0.1798452), mpf(0.022174192),
+                      mpf(0.0090316521)]))
     else:
-        x = (days_from_hours(mpf(12)) +
-             gregorian_date_difference(gregorian_date(1810, JANUARY, 1),
-                                       gregorian_date(year, JANUARY, 1)))
-        return 1/86400 * (((x * x) / mpf(41048480)) - 15)
+        return 1/86400 * poly((year - 1820) / mpf(100), [-20, 0, 32])
 
 # see lines 3178-3207 in calendrica-3.0.cl
 def equation_of_time(tee):
