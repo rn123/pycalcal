@@ -2612,10 +2612,12 @@ def `mayan_tzolkin_on_or_before(tzolkin, date):
                 mayan_tzolkin_ordinal(tzolkin), 260))
 
 # see lines 2140-2150 in calendrica-3.0.cl
+# Ultimate Edition (App. D, eqn 11.6) revised the haab reference from
+# (+ date 364) to date; updated here for 4th-edition parity.
 def `mayan_year_bearer_from_fixed(date):
     """Return year bearer of year containing fixed date date.
     Returns BOGUS for uayeb."""
-    x = mayan_haab_on_or_before(mayan_haab_date(1, 0), date + 364)
+    x = mayan_haab_on_or_before(mayan_haab_date(1, 0), date)
     return (BOGUS if (mayan_haab_month(mayan_haab_from_fixed(date)) == 19)
             else mayan_tzolkin_name(mayan_tzolkin_from_fixed(x)))
 
