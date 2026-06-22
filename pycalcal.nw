@@ -7384,6 +7384,116 @@ def `saudi_islamic_from_fixed(date):
     return islamic_date(year, month, day)
 
 
+##################################
+# roman additions (chapter 3)    #
+##################################
+# Ultimate Edition App. D: olympiads and AUC years.
+OLYMPIAD_START    = bce(776)   # Julian year of the first Olympiad.
+YEAR_ROME_FOUNDED = bce(753)   # Julian year of the founding of Rome.
+
+def `olympiad(cycle, year):
+    """Return an Olympiad data structure."""
+    return [cycle, year]
+
+def `olympiad_cycle(o_date):
+    return o_date[0]
+
+def `olympiad_year(o_date):
+    return o_date[1]
+
+def `olympiad_from_julian_year(j_year):
+    """Return the Olympiad corresponding to Julian year, j_year."""
+    years = j_year - OLYMPIAD_START - (0 if (j_year < 0) else 1)
+    return olympiad(1 + quotient(years, 4), 1 + mod(years, 4))
+
+def `julian_year_from_olympiad(o_date):
+    """Return the Julian year corresponding to Olympiad, o_date."""
+    cycle = olympiad_cycle(o_date)
+    year  = olympiad_year(o_date)
+    years = OLYMPIAD_START + (4 * (cycle - 1)) + year - 1
+    return years if (years < 0) else (1 + years)
+
+def `auc_year_from_julian(year):
+    """Return the year AUC equivalent to Julian year, year."""
+    if (YEAR_ROME_FOUNDED <= year <= -1):
+        return year - YEAR_ROME_FOUNDED - 1
+    return year - YEAR_ROME_FOUNDED
+
+def `julian_year_from_auc(year):
+    """Return the Julian year equivalent to AUC year, year."""
+    if (1 <= year <= (-YEAR_ROME_FOUNDED)):
+        return year + YEAR_ROME_FOUNDED - 1
+    return year + YEAR_ROME_FOUNDED
+
+##################################
+# italian time (chapter 14)      #
+##################################
+PADUA = location(angle(45, 24, 28), angle(11, 53, 9), mt(18), days_from_hours(1))
+
+def `local_zero_hour(tee):
+    """Return the local time of the Italian zero-hour (~half an hour after
+    sunset) for moment tee at Padua."""
+    date = fixed_from_moment(tee)
+    return local_from_standard(
+        dusk(date, PADUA, angle(0, 16, 0)) + days_from_hours(mpf(30) / 60), PADUA)
+
+def `italian_from_local(tee_ell):
+    """Return Italian time from local time, tee_ell."""
+    date = fixed_from_moment(tee_ell)
+    z0 = local_zero_hour(tee_ell - 1)
+    z  = local_zero_hour(tee_ell)
+    if (tee_ell > z):
+        return tee_ell + (date + 1 - z)
+    return tee_ell + (date - z0)
+
+def `local_from_italian(tee):
+    """Return local time from Italian time, tee."""
+    date = fixed_from_moment(tee)
+    z = local_zero_hour(tee - 1)
+    return tee - (date - z)
+
+##################################
+# additional holidays            #
+##################################
+KISLEV = 9   # Hebrew month number, for Hanukkah.
+
+BAHAI_LOCATION = location(deg(mpf(35.696111)), deg(mpf(51.423056)),
+                          mt(0), days_from_hours(3 + 1/2))
+
+def `bahai_sunset(date):
+    """Return the universal time of sunset on fixed date, date, for the
+    astronomical Bahai calendar (Tehran)."""
+    return universal_from_standard(sunset(date, BAHAI_LOCATION), BAHAI_LOCATION)
+
+def `nowruz(g_year):
+    """Return the fixed date of Persian New Year (Nowruz) in Gregorian g_year."""
+    persian_year = 1 + (g_year - gregorian_year_from_fixed(PERSIAN_EPOCH))
+    y = (persian_year - 1) if (persian_year <= 0) else persian_year
+    return fixed_from_persian(persian_date(y, 1, 1))
+
+def `hanukkah(g_year):
+    """Return the fixed date of the first day of Hanukkah in Gregorian g_year."""
+    return hebrew_in_gregorian(KISLEV, 25, g_year)
+
+def `mawlid(g_year):
+    """Return the list of fixed dates of Mawlid an-Nabi in Gregorian g_year."""
+    return islamic_in_gregorian(3, 12, g_year)
+
+def `birth_of_the_bab(g_year):
+    """Return the fixed date of the Birth of the Bab in Gregorian g_year."""
+    ny   = naw_ruz(g_year)
+    set1 = bahai_sunset(ny)
+    m1   = new_moon_at_or_after(set1)
+    m8   = new_moon_at_or_after(m1 + 190)
+    day  = fixed_from_moment(m8)
+    set8 = bahai_sunset(day)
+    return (day + 1) if (m8 < set8) else (day + 2)
+
+def `unlucky_fridays(g_year):
+    """Return the list of Friday-the-13ths in Gregorian year, g_year."""
+    return unlucky_fridays_in_range(gregorian_year_range(g_year))
+
+
 @ Round-trip and spot tests for the Ultimate-Edition calendars. The authoritative
 cross-implementation check is the SBCL differential harness
 (\texttt{tools/diff\_check.py}); these are committed regression tests.
@@ -7420,6 +7530,23 @@ class `UltimateCalendarsTestCase(unittest.TestCase):
         for rd in self.rd:
             self.assertEqual(
                 fixed_from_saudi_islamic(saudi_islamic_from_fixed(rd)), rd)
+
+    def testOlympiadRoundTrip(self):
+        for jy in range(-800, 400, 7):
+            self.assertEqual(
+                julian_year_from_olympiad(olympiad_from_julian_year(jy)), jy)
+
+    def testAucRoundTrip(self):
+        for jy in list(range(-760, -1)) + list(range(1, 200)):
+            self.assertEqual(julian_year_from_auc(auc_year_from_julian(jy)), jy)
+
+    def testHolidaySpots(self):
+        g = lambda d: gregorian_from_fixed(d)
+        self.assertEqual(g(nowruz(2020)), [2020, MARCH, 20])
+        self.assertEqual(g(hanukkah(2020)[0]), [2020, DECEMBER, 11])
+        self.assertEqual(g(mawlid(2020)[0]), [2020, OCTOBER, 29])
+        self.assertEqual([g(d) for d in unlucky_fridays(2020)],
+                         [[2020, NOVEMBER, 13], [2020, MARCH, 13]])
 
 
 @
