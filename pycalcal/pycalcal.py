@@ -5704,6 +5704,45 @@ def fixed_from_samaritan(s_date):
     return nm + day - 1
 
 
+######################################
+# saudi (Umm al-Qura) islamic (ch.18)#
+######################################
+# Ultimate Edition App. D, eqns 18.18-18.21. Reuses islamic_date structure.
+def saudi_criterion(date):
+    """Return True if the crescent moon is visible at sunset on the eve of
+    fixed date, date, at Mecca (Umm al-Qura criterion)."""
+    s     = sunset(date - 1, MECCA)
+    tee   = universal_from_standard(s, MECCA)
+    phase = lunar_phase(tee)
+    return ((NEW < phase < FIRST_QUARTER) and (moonlag(date - 1, MECCA) > 0))
+
+def saudi_new_month_on_or_before(date):
+    """Return the fixed date of the start of the Saudi month on or before date."""
+    moon = fixed_from_moment(lunar_phase_at_or_before(NEW, date))
+    age  = date - moon
+    tau  = (moon - 30) if ((age <= 3) and
+                           (not saudi_criterion(date))) else moon
+    return next(tau, lambda d: saudi_criterion(d))
+
+def fixed_from_saudi_islamic(s_date):
+    """Return the fixed date of Saudi (Umm al-Qura) Islamic date, s_date."""
+    month = standard_month(s_date)
+    day   = standard_day(s_date)
+    year  = standard_year(s_date)
+    midmonth = ISLAMIC_EPOCH + ifloor(
+        (((year - 1) * 12) + month - (mpf(1) / 2)) * MEAN_SYNODIC_MONTH)
+    return saudi_new_month_on_or_before(midmonth) + day - 1
+
+def saudi_islamic_from_fixed(date):
+    """Return the Saudi (Umm al-Qura) Islamic date for fixed date, date."""
+    crescent = saudi_new_month_on_or_before(date)
+    elapsed_months = iround((crescent - ISLAMIC_EPOCH) / MEAN_SYNODIC_MONTH)
+    year  = 1 + quotient(elapsed_months, 12)
+    month = 1 + mod(elapsed_months, 12)
+    day   = 1 + (date - crescent)
+    return islamic_date(year, month, day)
+
+
 # That's all folks!
 
 
