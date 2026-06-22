@@ -64,6 +64,18 @@ def fnum(x):
     return "%.6f" % float(x)
 
 
+def ftime(moment):
+    """Render the standard clock time-of-day of a moment as HH:MM:SS, or a dash
+    for BOGUS (e.g. no astronomical dawn / no moonrise on the day)."""
+    if moment == p.BOGUS:
+        return "---"
+    h, m, s = p.clock_from_moment(moment)
+    return "%02d:%02d:%02d" % (int(h), int(m), int(round(float(s))))
+
+
+PARIS_DAWN_ALPHA = p.angle(18, 0, 0)   # astronomical dawn (sun 18 deg below)
+
+
 def gyear(rd):
     return p.gregorian_year_from_fixed(rd)
 
@@ -132,16 +144,28 @@ PANELS = [
         ("Old Hindu lunar", lambda rd: d(p.old_hindu_lunar_from_fixed(rd))),
         ("Tibetan", lambda rd: d(p.tibetan_from_fixed(rd))),
     ]),
-    ("VII. Astronomy (U.T.)", [
+    ("VII. Solar astronomy and times", [
         ("R.D.", str),
-        ("Solar long. (noon)", lambda rd: fnum(p.solar_longitude(rd + 0.5))),
+        ("Ephem. corr. (d)", lambda rd: fnum(p.ephemeris_correction(rd + 0.5))),
+        ("Eq. of time (d)", lambda rd: fnum(p.equation_of_time(rd + 0.5))),
+        ("Solar long. 12:00", lambda rd: fnum(p.solar_longitude(rd + 0.5))),
         ("Next equinox/solst.", lambda rd: fnum(min(
             p.solar_longitude_after(p.SPRING, rd),
             p.solar_longitude_after(p.SUMMER, rd),
             p.solar_longitude_after(p.AUTUMN, rd),
             p.solar_longitude_after(p.WINTER, rd)))),
-        ("Lunar long. (midn.)", lambda rd: fnum(p.lunar_longitude(rd))),
+        ("Dawn (Paris)", lambda rd: ftime(p.dawn(rd, p.PARIS, PARIS_DAWN_ALPHA))),
+        ("Midday (Tehran)", lambda rd: ftime(p.midday(rd, p.TEHRAN))),
+        ("Sunset (Jerusalem)", lambda rd: ftime(p.sunset(rd, p.JERUSALEM))),
+    ]),
+    ("VIII. Lunar astronomy (midnight U.T.; altitude/rise/set at Mecca)", [
+        ("R.D.", str),
+        ("Lunar long. 00:00", lambda rd: fnum(p.lunar_longitude(rd))),
+        ("Lunar lat. 00:00", lambda rd: fnum(p.lunar_latitude(rd))),
+        ("Lunar alt. 00:00", lambda rd: fnum(p.lunar_altitude(rd, p.MECCA))),
         ("Next new moon", lambda rd: fnum(p.new_moon_at_or_after(rd))),
+        ("Moonrise (Mecca)", lambda rd: ftime(p.moonrise(rd, p.MECCA))),
+        ("Moonset (Mecca)", lambda rd: ftime(p.moonset(rd, p.MECCA))),
     ]),
 ]
 
@@ -156,7 +180,10 @@ def render_latex(dates):
            r"\begin{center}{\large Calendrical Calculations --- Appendix C "
            r"(reconstruction from pycalcal, Ultimate Edition)}\\[2pt]",
            r"{\footnotesize 33 sample dates; raw function output, negative = "
-           r"B.C.E., leap flags as t/f. $^\ast$ = Roman leap year.}\end{center}"]
+           r"B.C.E., leap flags as t/f. $^\ast$ = Roman leap year. Times shown as "
+           r"standard clock time (HH:MM:SS), `---' = none that day. Ephemeris "
+           r"correction / equation of time taken at noon; lunar altitude at Mecca "
+           r"(prose does not fix the observer).}\end{center}"]
     for title, cols in PANELS:
         out.append(r"\section*{%s}" % title.replace("'", "'"))
         out.append(r"\footnotesize")
