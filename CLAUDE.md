@@ -16,7 +16,7 @@ This is the single most important thing to understand before editing:
 
 ## Build / test commands
 
-The build pipeline requires `noweb` (`notangle`/`noweave`), `make`, `sh`, and (for docs) a LaTeX distribution with asymptote/metapost. `mpmath` is a runtime dependency (imported by the generated code) but is **not** declared in `setup.py`.
+The build pipeline requires `noweb` (`notangle`/`noweave`), `make`, `sh`, and (for docs) a LaTeX distribution with asymptote/metapost. `mpmath` is the one runtime dependency (declared in `setup.py`, imported by the generated code).
 
 ```sh
 ./makemake.sh          # bootstrap: tangles the Makefile out of pycalcal.nw
@@ -33,7 +33,25 @@ make gregorianCalendarUnitTest.py
 python -m unittest gregorianCalendarUnitTest
 ```
 
-Tests validate against worked examples in the book and Appendix C tables; reference date data is tangled from `dates[1-5].tex` into CSVs.
+Tests validate against worked examples in the book and Appendix C tables; reference date data is tangled from `dates[1-5].tex` into CSVs (see `docs/test-data.md` for provenance).
+
+### Running the tests from a clean clone
+
+Nothing runnable is committed — the Makefile, tangled `*UnitTest.py`, `pycalcaltests.py`, and `dates*.csv` are all build artifacts (gitignored). The whole suite (92 tests: the Appendix C oracle + per-calendar smoke tests) does pass under Python 3 once bootstrapped:
+
+```sh
+brew install noweb                                   # provides notangle/noweave/cpif
+python3 -m venv .venv && .venv/bin/pip install mpmath
+./makemake.sh && make pycalcal.py testdata
+make $(grep -oE '[a-zA-Z]+UnitTest\.py' pycalcal.nw | sort -u | grep -v xyzzy) pycalcaltests.py
+cp pycalcal.py pycalcal/pycalcal.py                  # sync the tangle into the package (see below)
+.venv/bin/python pycalcaltests.py                    # -> Ran 92 tests ... OK
+```
+
+Two gotchas the bootstrap papers over, both worth knowing before editing:
+
+- **`pycalcal/__init__.py` must re-export** (`from pycalcal.pycalcal import *`); when empty, `from pycalcal import *` — used by every test and any pip consumer — silently imports nothing.
+- **The packaged `pycalcal/pycalcal.py` is not auto-synced** from the `.nw` tangle. `make pycalcal.py` writes to the repo root; the package copy must be updated by hand (`cp pycalcal.py pycalcal/pycalcal.py`). There is no `make` target for this yet, so the two can drift.
 
 ## Conventions that matter when reading the code
 
