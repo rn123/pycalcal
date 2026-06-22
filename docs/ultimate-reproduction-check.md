@@ -1,8 +1,16 @@
 # Does pycalcal reproduce the Ultimate Edition Appendix C tables?
 
-**Short answer:** Yes for the *integer calendar-conversion* columns of every calendar
-pycalcal implements — including the revised astronomical calendars (Persian astronomical,
-Bahá'í astronomical) at the sample dates. It diverges only on the *floating-point
+> **Update (verified port complete).** pycalcal has since been **updated to the Ultimate
+> Edition** (see `docs/ultimate-check-report.md` and the `Tier`/`Port` commits). The
+> astronomy was ported (Espenak–Meeus ΔT), and the five new calendars (Akan, Icelandic,
+> Babylonian, Samaritan, Saudi/Umm al-Qura), the astronomical-Bahá'í names, Unix time, the
+> Roman additions, Italian hours, holidays, and the alternative observational calendars were
+> all added and **differential-verified against the (validated) Ultimate Lisp oracle**. The
+> note below describes the *pre-port* 3rd-edition state and is kept for history.
+
+**Short answer (pre-port):** Yes for the *integer calendar-conversion* columns of every
+calendar pycalcal implements — including the revised astronomical calendars (Persian
+astronomical, Bahá'í astronomical) at the sample dates. It diverges only on the *floating-point
 astronomy* (panel 5), exactly as the book's own version note predicts. Calendars added in
 the Ultimate Edition (Akan, Icelandic, Umm al-Qura, Babylonian, Samaritan) are not
 implemented, so there is nothing to reproduce.

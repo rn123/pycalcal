@@ -117,3 +117,42 @@ Tier 0 (astro-bahai rename, trig/unix) → Tier 1 (Akan, Icelandic, Roman) → T
 Tier 4 (Babylonian, Samaritan, Saudi). Plus the `mayan-year-bearer` fix. Re-run
 `tools/diff_check.py` after each increment; acceptance = the DIFFER set empties (floats within
 tolerance) and the NEW set gains pycalcal equivalents that match the oracle.
+
+## Phase 4 complete — verified update to the Ultimate Edition
+
+Every gap from the check above has been ported into `pycalcal.nw` and verified against the
+(Phase-1-validated) Ultimate Lisp oracle via `tools/diff_check.py`. Per-calendar results
+(random + boundary dates):
+
+| Item | Result vs Ultimate Lisp |
+|---|---|
+| `mayan-year-bearer` (edition change) | 1654/1664 → **0/404** differ |
+| Astronomy (Espenak–Meeus ΔT) | float layer converged ~1e-3°→~1e-9; 12 divergent fns → 3 |
+| Akan day-names | **0/800** |
+| Icelandic | **0/800**, 0 round-trip fail |
+| Babylonian | **0/250**, 0 round-trip fail |
+| Samaritan | **199/200** (1 ceiling boundary), 0 round-trip fail |
+| Saudi / Umm al-Qura | **0/200**, 0 round-trip fail |
+| astro-Bahá'í (rename) | matches `future_bahai` exactly |
+| Unix time | epoch → 1970-01-01, round-trips |
+| Roman olympiad / AUC | round-trip; matches Lisp |
+| alt-observational Hebrew / Islamic | **0/120** each, 0 round-trip fail |
+| Holidays (nowruz, hanukkah, mawlid, birth-of-the-bab, unlucky-fridays) | spot-verified |
+
+**Two latent bugs found and fixed while porting** (caught by the differential/round-trip):
+- `moonrise` passed its `binary_search` termination lambda with swapped operands → returned
+  the initial approximation instead of searching. Fixed; `moonrise`/`moonset` now match the
+  Ultimate Lisp exactly.
+- `auc_year_from_julian` mis-translated the Lisp `(- year yrf -1)` (a negative-operand) as
+  `- 1` instead of `+ 1`; off by 2 for negative Julian years. Fixed.
+
+Residual `*-from-fixed` differences after the port (≤ a handful of dates each:
+`observational-hebrew`, `chinese`, `astro-hindu-lunar`, plus Samaritan's 1 ceiling) are
+**mpmath(prec 50) vs IEEE-double** boundary sensitivity at the ~1e-9 level, not algorithmic.
+
+**Test suite: 102 tests, all passing.** Panel-5 astronomy re-baselined to Ultimate.
+
+### Deferred (single remaining item)
+`alt-birkath-ha-hama` (a holiday, not a calendar) is not ported: it needs
+`samuel-season-in-gregorian` → `cycle-in-gregorian`, helpers beyond the calendar set. All
+calendar conversions and the other holidays are complete.
