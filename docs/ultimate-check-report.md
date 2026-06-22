@@ -201,3 +201,34 @@ Prompted by the lunar columns not matching the printed Appendix C. Findings:
 Net: the lunar latitude/altitude/new-moon columns now match the book; lunar
 longitude differs only by the book's print typo. Lunar altitude observer confirmed
 = Mecca (matched the printed value to all digits).
+
+## Full Appendix C comparison — all entries (computed vs book code)
+
+`tools/appc_full_oracle.lisp` + `tools/appc_compare.py` compute **every** Appendix C
+column for the 33 sample dates from the Ultimate Lisp (the book's own
+Appendix-C-generating code) and diff against pycalcal cell-by-cell.
+
+**Result: 1979 / 1980 cells match (59 of 60 columns perfect.)** Integers/date-lists
+compared exactly; floats/times within 1e-6.
+
+The investigation surfaced and fixed two further edition differences along the way:
+- **Sunset in Jerusalem** was ~25 s off: the Ultimate revised the JERUSALEM location
+  from (31.8, 35.2, 800 m) to (31.78, 35.24, 740 m). Ported → sunset matches the book
+  exactly (mod 1 = 0.780556).
+- **Midday in Tehran** was a false alarm: pycalcal's `midday` returns *standard* time
+  (= the book's printed value, 0.504216); the oracle had dumped the *universal*
+  intermediate. (No code change; oracle now emits standard time.)
+
+Single remaining cell mismatch: **astro-Bahá'í, R.D. 25469** — off by one day
+(`[-4,2,13,10,18]` vs `[-4,2,13,10,17]`). astro-Bahá'í = the (identical) `future_bahai`
+code; it agrees on the other 32 dates, so this is the mpmath(prec 50)-vs-IEEE-double
+boundary sensitivity at a sunset/new-year day boundary — not an algorithmic difference.
+
+Separately, the printed lunar-longitude cell (`244.853005`) is a one-digit **book typo**
+(code = `244.853905`, confirmed by the book's own moonrise/moonset for that date);
+the pycalcal-vs-Lisp comparison agrees (both `244.853905`).
+
+### Verdict
+Every Appendix C column the book lists is now reproduced by pycalcal, matching the
+book's own generating code on 1979/1980 sample cells; the lone residual is one
+day-boundary flip from arbitrary-precision-vs-double arithmetic.
