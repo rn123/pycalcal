@@ -7416,7 +7416,9 @@ def `julian_year_from_olympiad(o_date):
 def `auc_year_from_julian(year):
     """Return the year AUC equivalent to Julian year, year."""
     if (YEAR_ROME_FOUNDED <= year <= -1):
-        return year - YEAR_ROME_FOUNDED - 1
+        # Lisp (- year year-rome-founded -1): the -1 is a negative operand,
+        # i.e. year - yrf - (-1) = year - yrf + 1.
+        return year - YEAR_ROME_FOUNDED + 1
     return year - YEAR_ROME_FOUNDED
 
 def `julian_year_from_auc(year):
