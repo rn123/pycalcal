@@ -2708,22 +2708,54 @@ def observed_lunar_altitude(tee, location):
 # see lines 460-467 in calendrica-3.0.errata.cl
 def moonrise(date, location):
     """Return the standard time of moonrise on fixed, date,
-    and location, location."""
+    and location, location.  Ultimate Edition (App. D) revision: latitude-aware
+    offset and the max(..., date) clamp (was offset = alt/360 in the 3rd ed.)."""
     t = universal_from_standard(date, location)
     waning = (lunar_phase(t) > deg(180))
     alt = observed_lunar_altitude(t, location)
-    offset = alt / 360
-    if (waning and (offset > 0)):
-        approx =  t + 1 - offset
-    elif waning:
-        approx = t - offset
+    lat = latitude(location)
+    offset = alt / (4 * (deg(90) - abs(lat)))
+    if waning:
+        approx = (t + 1 - offset) if (offset > 0) else (t - offset)
     else:
         approx = t + (1 / 2) + offset
-    rise = binary_search(approx - days_from_hours(3),
-                         approx + days_from_hours(3),
-                         lambda u, l: ((u - l) < days_from_hours(1 / 60)),
+    rise = binary_search(approx - days_from_hours(6),
+                         approx + days_from_hours(6),
+                         lambda l, u: ((u - l) < days_from_hours(1 / 60)),
                          lambda x: observed_lunar_altitude(x, location) > deg(0))
-    return standard_from_universal(rise, location) if (rise < (t + 1)) else BOGUS
+    return (max(standard_from_universal(rise, location), date)
+            if (rise < (t + 1)) else BOGUS)
+
+# Ultimate Edition (App. D): moonset and moonlag.
+def moonset(date, location):
+    """Return the standard time of moonset on fixed, date, and location."""
+    t = universal_from_standard(date, location)
+    waxing = (lunar_phase(t) < deg(180))
+    alt = observed_lunar_altitude(t, location)
+    lat = latitude(location)
+    offset = alt / (4 * (deg(90) - abs(lat)))
+    if waxing:
+        approx = (t + offset) if (offset > 0) else (t + 1 + offset)
+    else:
+        approx = t - offset + (1 / 2)
+    sett = binary_search(approx - days_from_hours(6),
+                         approx + days_from_hours(6),
+                         lambda l, u: ((u - l) < days_from_hours(1 / 60)),
+                         lambda x: observed_lunar_altitude(x, location) < deg(0))
+    return (max(standard_from_universal(sett, location), date)
+            if (sett < (t + 1)) else BOGUS)
+
+def moonlag(date, location):
+    """Return the time between sunset and moonset on date at location.
+    Returns BOGUS if there is no sunset; one day if there is no moonset."""
+    sun  = sunset(date, location)
+    moon = moonset(date, location)
+    if (sun == BOGUS):
+        return BOGUS
+    elif (moon == BOGUS):
+        return days_from_hours(24)
+    else:
+        return moon - sun
 
 
 def urbana_sunset(gdate):
@@ -5527,6 +5559,82 @@ def icelandic_month(i_date):
     else:
         start = midsummer
     return 1 + quotient(date - start, 30)
+
+
+##################################
+# babylonian calendar (ch. 18)   #
+##################################
+# Ultimate Edition App. D, eqns 18.1-18.8.
+BABYLON = location(deg(mpf(32.4794)), deg(mpf(44.4328)),
+                   mt(26), days_from_hours(3 + 1/2))
+
+BABYLONIAN_EPOCH = fixed_from_julian(julian_date(bce(311), APRIL, 3))
+
+def babylonian_date(year, month, leap, day):
+    """Return a Babylonian date data structure."""
+    return [year, month, leap, day]
+
+def babylonian_year(date):
+    return date[0]
+
+def babylonian_month(date):
+    return date[1]
+
+def babylonian_leap(date):
+    return date[2]
+
+def babylonian_day(date):
+    return date[3]
+
+def babylonian_leap_year(b_year):
+    """Return True if b_year is a leap year on the Babylonian calendar."""
+    return mod(7 * b_year + 13, 19) < 7
+
+def babylonian_criterion(date):
+    """Return True if the crescent moon is visible at sunset on the eve of
+    fixed date, date, at Babylon."""
+    s     = sunset(date - 1, BABYLON)
+    tee   = universal_from_standard(s, BABYLON)
+    phase = lunar_phase(tee)
+    return ((NEW < phase < FIRST_QUARTER) and
+            (new_moon_before(tee) <= (tee - days_from_hours(24))) and
+            (moonlag(date - 1, BABYLON) > days_from_hours(mpf(48) / 60)))
+
+def babylonian_new_month_on_or_before(date):
+    """Return the fixed date of the start of the Babylonian month on or before
+    fixed date, date."""
+    moon = fixed_from_moment(lunar_phase_at_or_before(NEW, date))
+    age  = date - moon
+    tau  = (moon - 30) if ((age <= 3) and
+                           (not babylonian_criterion(date))) else moon
+    return next(tau, lambda d: babylonian_criterion(d))
+
+def fixed_from_babylonian(b_date):
+    """Return the fixed date of Babylonian date, b_date."""
+    month = babylonian_month(b_date)
+    leap  = babylonian_leap(b_date)
+    day   = babylonian_day(b_date)
+    year  = babylonian_year(b_date)
+    month1 = month if (leap or ((mod(year, 19) == 18) and (month > 6))) \
+        else (month - 1)
+    months = quotient((year - 1) * 235 + 13, 19) + month1
+    midmonth = BABYLONIAN_EPOCH + iround(MEAN_SYNODIC_MONTH * months) + 15
+    return babylonian_new_month_on_or_before(midmonth) + day - 1
+
+def babylonian_from_fixed(date):
+    """Return the Babylonian date corresponding to fixed date, date."""
+    crescent = babylonian_new_month_on_or_before(date)
+    months   = iround((crescent - BABYLONIAN_EPOCH) / MEAN_SYNODIC_MONTH)
+    year     = 1 + quotient(19 * months + 5, 235)
+    approx   = BABYLONIAN_EPOCH + iround(
+        quotient((year - 1) * 235 + 13, 19) * MEAN_SYNODIC_MONTH)
+    new_year = babylonian_new_month_on_or_before(approx + 15)
+    month1   = 1 + iround((crescent - new_year) / mpf(29.5))
+    special  = (mod(year, 19) == 18)
+    leap     = (month1 == 7) if special else (month1 == 13)
+    month    = (month1 - 1) if (leap or (special and (month1 > 6))) else month1
+    day      = date - crescent + 1
+    return babylonian_date(year, month, leap, day)
 
 
 # That's all folks!
