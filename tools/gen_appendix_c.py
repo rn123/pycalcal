@@ -65,11 +65,9 @@ def easter_g(rd, fn):
     return dd(p.gregorian_from_fixed(fn(p.gregorian_year_from_fixed(rd))))
 
 
-def roman(rd):
-    r = p.roman_from_fixed(rd)
-    leap = "*" if p.roman_leap(r) else ""
-    return "%d %s %d%s %d" % (p.roman_count(r), ROMAN_EV[p.roman_event(r)],
-                              p.roman_month(r), leap, p.roman_year(r))
+def olympiad_cell(rd):
+    """Olympiad [cycle year] of the Julian year of fixed date rd (raw)."""
+    return dd(p.olympiad_from_julian_year(p.standard_year(p.julian_from_fixed(rd))))
 
 
 # ---- panel model -----------------------------------------------------------
@@ -91,14 +89,17 @@ def grp(label, *cols):
 
 
 PANELS = [
-    ("supp.", "SUPPLEMENT (not in 4th-ed Appendix C): Western basics", [
+    ("p.755", "Day count / Gregorian / Julian / Egyptian / Armenian", [
         RD,
         one("Weekday", lambda rd: WEEKDAYS[p.day_of_week_from_fixed(rd)]),
-        one("J.D.", lambda rd: "%.1f" % float(p.jd_from_fixed(rd))),
-        one("M.J.D.", lambda rd: str(p.mjd_from_fixed(rd))),
+        one("Julian", "Day", lambda rd: "%.1f" % float(p.jd_from_fixed(rd))),
+        one("Modified", "Julian Day", lambda rd: str(p.mjd_from_fixed(rd))),
+        one("Unix", lambda rd: str(int(p.unix_from_moment(rd)))),
         one("Gregorian", lambda rd: dd(p.gregorian_from_fixed(rd))),
-        one("Julian", lambda rd: dd(p.julian_from_fixed(rd))),
-        one("Roman", roman),
+        grp("Julian",
+            (["Date"], lambda rd: dd(p.julian_from_fixed(rd))),
+            (["Roman name"], lambda rd: dd(p.roman_from_fixed(rd))),
+            (["Olympiad"], olympiad_cell)),
         one("Egyptian", lambda rd: dd(p.egyptian_from_fixed(rd))),
         one("Armenian", lambda rd: dd(p.armenian_from_fixed(rd))),
     ]),
@@ -216,7 +217,7 @@ def render_latex(dates):
            r"\begin{center}{\large Calendrical Calculations --- Appendix C "
            r"(reconstruction from pycalcal, Ultimate Edition)}\\[2pt]",
            r"{\footnotesize Panels and headers mirror the printed 4th-ed.\ "
-           r"Appendix C pp.\,756--761. 33 sample dates; raw function output, "
+           r"Appendix C pp.\,755--761. 33 sample dates; raw function output, "
            r"negative = B.C.E., leap flags t/f. Standard-time cells: "
            r"`fraction = HH:MM:SS', `---' = none that day.}\end{center}"]
     for ref, title, groups in PANELS:
@@ -282,7 +283,7 @@ def main():
     with open(os.path.join(out_dir, "appendixC_full.tex"), "w") as fh:
         fh.write(render_latex(dates))
     print("Wrote recon/appendixC_full.tex and recon/appendixC_full.csv"
-          " (%d dates, %d panels: supplement + 6 book panels)"
+          " (%d dates, %d panels mirroring book pp.755-761)"
           % (len(dates), len(PANELS)))
     return 0
 
