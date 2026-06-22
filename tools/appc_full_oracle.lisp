@@ -81,7 +81,7 @@
                           (solar-longitude-after autumn rd)
                           (solar-longitude-after winter rd)))
     (e "DAWN-PARIS" (dawn rd paris *paris-dawn*))
-    (e "MIDDAY-TEHRAN" (midday rd tehran))
+    (e "MIDDAY-TEHRAN" (standard-from-universal (midday rd tehran) tehran))
     (e "SUNSET-JERU" (sunset rd jerusalem))
     ;; p.761
     (e "LUNAR-LONG" (lunar-longitude rd))
