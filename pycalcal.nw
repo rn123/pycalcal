@@ -8571,7 +8571,16 @@ tools:
 
 
 .PHONY : code
-code: pycalcal.py pycalcaltests.py
+code: pycalcal.py pycalcaltests.py package
+
+# Keep the importable package in sync with the tangled library.
+# `make pycalcal.py` writes to the repo root; the package ships
+# pycalcal/pycalcal.py, so copy it across whenever the tangle is newer.
+.PHONY : package
+package: pycalcal/pycalcal.py
+
+pycalcal/pycalcal.py: pycalcal.py
+	cp pycalcal.py pycalcal/pycalcal.py
 
 .PHONY : tests
 tests: testSunset.cl
