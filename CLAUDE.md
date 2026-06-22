@@ -44,14 +44,15 @@ brew install noweb                                   # provides notangle/noweave
 python3 -m venv .venv && .venv/bin/pip install mpmath
 ./makemake.sh && make pycalcal.py testdata
 make $(grep -oE '[a-zA-Z]+UnitTest\.py' pycalcal.nw | sort -u | grep -v xyzzy) pycalcaltests.py
-cp pycalcal.py pycalcal/pycalcal.py                  # sync the tangle into the package (see below)
+make package                                         # sync the tangle into the package (see below)
 .venv/bin/python pycalcaltests.py                    # -> Ran 92 tests ... OK
 ```
 
-Two gotchas the bootstrap papers over, both worth knowing before editing:
+One gotcha the bootstrap papers over, worth knowing before editing:
 
 - **`pycalcal/__init__.py` must re-export** (`from pycalcal.pycalcal import *`); when empty, `from pycalcal import *` — used by every test and any pip consumer — silently imports nothing.
-- **The packaged `pycalcal/pycalcal.py` is not auto-synced** from the `.nw` tangle. `make pycalcal.py` writes to the repo root; the package copy must be updated by hand (`cp pycalcal.py pycalcal/pycalcal.py`). There is no `make` target for this yet, so the two can drift.
+
+`make pycalcal.py` writes the tangle to the repo root, but the importable package ships `pycalcal/pycalcal.py`. The `package` target (a dependency of `code`) copies the tangle across when it is newer, so a normal `make code` keeps them in sync; run `make package` explicitly after a bare `make pycalcal.py`.
 
 ## Conventions that matter when reading the code
 
