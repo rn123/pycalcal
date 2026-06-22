@@ -876,7 +876,7 @@ These helper functions are used to deal with intervals and ranges of events:
 # see lines 502-510 in calendrica-3.0.cl
 def `list_range(ell, range):
     """Return those moments in list ell that occur in range 'range'."""
-    return filter(lambda x: is_in_range(x, range), ell)
+    return list(filter(lambda x: is_in_range(x, range), ell))
 
 # see lines 482-485 in calendrica-3.0.cl
 def `interval(t0, t1):
@@ -7057,7 +7057,7 @@ class `AppendixCTable1TestCaseBase():
                         'Friday': FRIDAY,
                         'Saturday': SATURDAY}
 
-        reader = csv.reader(open("dates1.csv", "rU"),
+        reader = csv.reader(open("dates1.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = [] # Rata Die
@@ -7231,7 +7231,7 @@ Bahai, Future Bahai, Mayan (Long count, Haab and Tzolkin), Aztec
 <<appendixCTable2Tests>>=
 class `AppendixCTable2TestCaseBase():
     def setUp(self):
-        reader = csv.reader(open("dates2.csv", "rU"),
+        reader = csv.reader(open("dates2.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = [] # Rata Die
@@ -7375,7 +7375,7 @@ class `AppendixCTable3TestCaseBase():
         return False if c == 'f' else True
 
     def setUp(self):
-        reader = csv.reader(open("dates3.csv", "rU"),
+        reader = csv.reader(open("dates3.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = []
@@ -7541,7 +7541,7 @@ class `AppendixCTable4TestCaseBase():
         return False if c == 'f' else True
 
     def setUp(self):
-        reader = csv.reader(open("dates4.csv", "rU"),
+        reader = csv.reader(open("dates4.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = []
@@ -7711,7 +7711,7 @@ class `AppendixCTable5TestCaseBase():
         return False if c == 'f' else True
 
     def setUp(self):
-        reader = csv.reader(open("dates5.csv", "rU"),
+        reader = csv.reader(open("dates5.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
         self.rd    = []
@@ -7731,7 +7731,7 @@ class `AppendixCTable5TestCaseBase():
             self.dip.append(row[5])
             self.sij.append(row[9])
 
-        reader1 = csv.reader(open("dates5.errata.csv", "rU"),
+        reader1 = csv.reader(open("dates5.errata.csv", "r"),
                             delimiter=',',
                             quoting=csv.QUOTE_NONE)
 
@@ -9126,7 +9126,7 @@ import csv
 
 rd = []
 ho = []
-reader = csv.reader(open("dates3.csv", "rU"),
+reader = csv.reader(open("dates3.csv", "r"),
                     delimiter=',',
                     quoting=csv.QUOTE_NONE)
 for row in reader:
@@ -9136,10 +9136,10 @@ for row in reader:
 
 for i in range(len(rd)):
     # observational
-    print 'R.D.= %d; oh_from_fxd=%s; fxd_from_oh=%d; book=%s' % (rd[i],
+    print('R.D.= %d; oh_from_fxd=%s; fxd_from_oh=%d; book=%s' % (rd[i],
                             observational_hebrew_from_fixed(rd[i]),
                             fixed_from_observational_hebrew(ho[i]),
-                                              ho[i])
+                                              ho[i]))
 
 @
 %%%%%%%%%%%%%%%%%%%%%%%%%

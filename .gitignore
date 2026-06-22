@@ -11,3 +11,12 @@ premarkup
 testResult.txt
 testSunset.cl
 trasformLatexDates2Cvs
+
+# tangled build artifacts (regenerated from pycalcal.nw)
+/pycalcal.py
+*UnitTest.py
+pycalcaltests.py
+
+# local dev
+.venv/
+ultimate_extract/
