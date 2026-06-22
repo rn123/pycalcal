@@ -44,10 +44,56 @@ inverses, holiday functions, and the float-level astronomy (`solar-longitude`, m
 where the edition divergence is expected. These are covered by the Phase 2 differential harness
 (pycalcal vs Ultimate Lisp) and round-trip checks.
 
-## Next
+## Phase 2/3 — pycalcal vs Ultimate Lisp differential (DONE)
 
-- Phase 2: SBCL differential harness (`tools/diff_oracle.lisp` + `tools/diff_check.py`) —
-  pycalcal vs Ultimate Lisp over many random + boundary dates, integers exact / floats by
-  tolerance, including `fixed-from-*` round-trips and the float astronomy.
-- Phase 3: complete this report with the full pycalcal-vs-Ultimate matrix.
-- Phase 4: port (Tiers 0–4) + the `mayan-year-bearer` fix; each increment differential-tested.
+`tools/diff_oracle.lisp` (SBCL dumper) + `tools/diff_check.py` (comparator) ran pycalcal
+against the Ultimate Lisp over **1664 dates** (33 samples + ~1500 random in [−250000, 800000]
++ boundary offsets). Integer/date conversions compared exactly; float astronomy by tolerance
+(1e-6).
+
+### EXACT agreement — 45 functions
+All arithmetic calendars and most astronomical *date* conversions match pycalcal exactly over
+all 1664 dates: Gregorian/alt-Gregorian, Julian, Roman, ISO, Coptic, Ethiopic, Egyptian,
+Armenian, Islamic (arith), Hebrew (std), Bahá'í (Western), arithmetic Persian, French (arith),
+all Balinese sub-cycles, Mayan (haab/long-count/tzolkin), Aztec (xihuitl/tonalpohualli/
+xiuhmolpilli), Hindu (solar/lunar/fullmoon, old solar/lunar), Tibetan, day-of-week, JD/MJD.
+
+### Divergences — classified
+
+**(a) Revised astronomy (float layer) — the inter-edition change (full-parity port target):**
+| quantity | dates differing | example magnitude |
+|---|---|---|
+| `solar-longitude` (noon) | 1454/1664 | 186.49034 vs 186.49215 (~1.8e-3°) |
+| `lunar-longitude` (midnight) | 1454/1664 | ~0.026° |
+| `lunar-phase` (midnight) | 1454/1664 | ~0.024° |
+
+**(b) Astronomy-dependent calendars that flip an integer date on a few dates** (downstream of
+(a) — the ~1e-3° shift occasionally crosses a day boundary; converge once (a) is ported):
+`observational-hebrew` (11/1664), `observational-islamic` (8), `astro-hindu-lunar` (12),
+`astro-hindu-solar` (2), `chinese` (7), `persian` (4), `french` astronomical (1).
+This explains why the earlier sample-date reproduction check saw integer dates match — only a
+handful of the 1664 dates sit near a boundary.
+
+**(c) Genuine non-astronomy edition change:** `mayan-year-bearer-from-fixed` (1654/1664) —
+3.0 `(+ date 364)` → Ultimate `date` (Phase 1).
+
+### NEW in Ultimate — no pycalcal equivalent (8)
+`akan-name-from-fixed`, `icelandic-from-fixed`, `babylonian-from-fixed`, `samaritan-from-fixed`,
+`saudi-islamic-from-fixed`, `astro-bahai-from-fixed`, `alt-observational-hebrew-from-fixed`,
+`alt-observational-islamic-from-fixed`.
+
+## Verdict (the "fully check" answer)
+
+Current pycalcal **already reproduces the Ultimate Edition** for all arithmetic calendars and
+all astronomical calendars *at the integer-date level except where the revised astronomy flips a
+boundary date*. To reach full parity the update must: (1) port the revised astronomy (fixes the
+float layer and the (b) boundary flips), (2) fix `mayan-year-bearer`, (3) add the 8 new
+functions/calendars.
+
+## Next — Phase 4 (port, each increment differential-tested)
+
+Tier 0 (astro-bahai rename, trig/unix) → Tier 1 (Akan, Icelandic, Roman) → Tier 2 (holidays)
+→ Tier 3 (astronomy helpers + **revised astronomy** + crescent criteria; fixes (a)/(b)) →
+Tier 4 (Babylonian, Samaritan, Saudi). Plus the `mayan-year-bearer` fix. Re-run
+`tools/diff_check.py` after each increment; acceptance = the DIFFER set empties (floats within
+tolerance) and the NEW set gains pycalcal equivalents that match the oracle.
