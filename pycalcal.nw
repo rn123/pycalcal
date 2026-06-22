@@ -7496,6 +7496,99 @@ def `unlucky_fridays(g_year):
     return unlucky_fridays_in_range(gregorian_year_range(g_year))
 
 
+##########################################
+# alternative observational calendars     #
+##########################################
+# Ultimate Edition App. D, ch. 18: the alternative observational Islamic and
+# Hebrew calendars, with sample crescent-visibility locations.
+ISLAMIC_LOCATION = location(deg(mpf(30.1)), deg(mpf(31.3)), mt(200),
+                            days_from_hours(2))   # Cairo, Egypt.
+HEBREW_LOCATION  = location(deg(mpf(32.82)), deg(35), mt(0),
+                            days_from_hours(2))    # Haifa, Israel.
+
+def `month_length(date, location):
+    """Return the length in days of the lunar month containing fixed date."""
+    moon = phasis_on_or_after(date + 1, location)
+    prev = phasis_on_or_before(date, location)
+    return moon - prev
+
+def `early_month(date, location):
+    """Return True if the lunar month containing date is 'early' (started >29
+    days ago, or follows an over-long month)."""
+    start = phasis_on_or_before(date, location)
+    prev  = start - 15
+    return (((date - start) >= 30) or
+            (month_length(prev, location) > 30) or
+            ((month_length(prev, location) == 30) and early_month(prev, location)))
+
+def `season_in_gregorian(season, g_year):
+    """Return the moment of the first time in Gregorian g_year when the solar
+    longitude reaches season."""
+    jan1 = gregorian_new_year(g_year)
+    return solar_longitude_after(season, jan1)
+
+def `observational_hebrew_first_of_nisan(g_year):
+    """Return the fixed date of Observational (Haifa) 1 Nisan in Gregorian g_year."""
+    equinox = season_in_gregorian(SPRING, g_year)
+    sett = universal_from_standard(sunset(ifloor(equinox), HEBREW_LOCATION),
+                                   HEBREW_LOCATION)
+    return phasis_on_or_after(ifloor(equinox) - (14 if (equinox < sett) else 13),
+                              HEBREW_LOCATION)
+
+def `alt_observational_islamic_from_fixed(date):
+    """Return the alternative Observational Islamic date for fixed date, date."""
+    early = early_month(date, ISLAMIC_LOCATION)
+    longm = early and (month_length(date, ISLAMIC_LOCATION) > 29)
+    date_prime = (date + 1) if longm else date
+    moon = phasis_on_or_before(date_prime, ISLAMIC_LOCATION)
+    elapsed_months = iround((moon - ISLAMIC_EPOCH) / MEAN_SYNODIC_MONTH)
+    year  = 1 + quotient(elapsed_months, 12)
+    month = 1 + mod(elapsed_months, 12)
+    day   = date_prime - moon - (-2 if (early and not longm) else -1)
+    return islamic_date(year, month, day)
+
+def `alt_fixed_from_observational_islamic(i_date):
+    """Return the fixed date of alternative Observational Islamic date, i_date."""
+    month = standard_month(i_date)
+    day   = standard_day(i_date)
+    year  = standard_year(i_date)
+    midmonth = ISLAMIC_EPOCH + ifloor(
+        ((((year - 1) * 12) + month - (mpf(1) / 2)) * MEAN_SYNODIC_MONTH))
+    moon = phasis_on_or_before(midmonth, ISLAMIC_LOCATION)
+    date = moon + day - 1
+    return (date - 1) if early_month(midmonth, ISLAMIC_LOCATION) else date
+
+def `alt_observational_hebrew_from_fixed(date):
+    """Return the alternative Observational Hebrew date for fixed date, date."""
+    early = early_month(date, HEBREW_LOCATION)
+    longm = early and (month_length(date, HEBREW_LOCATION) > 29)
+    date_prime = (date + 1) if longm else date
+    moon   = phasis_on_or_before(date_prime, HEBREW_LOCATION)
+    g_year = gregorian_year_from_fixed(date_prime)
+    ny     = observational_hebrew_first_of_nisan(g_year)
+    new_year = observational_hebrew_first_of_nisan(g_year - 1) \
+        if (date_prime < ny) else ny
+    month = 1 + iround((moon - new_year) / mpf(29.5))
+    year  = (standard_year(hebrew_from_fixed(new_year)) +
+             (1 if (month >= TISHRI) else 0))
+    day   = date_prime - moon - (-2 if (early and not longm) else -1)
+    return hebrew_date(year, month, day)
+
+def `alt_fixed_from_observational_hebrew(h_date):
+    """Return the fixed date of alternative Observational Hebrew date, h_date."""
+    month = standard_month(h_date)
+    day   = standard_day(h_date)
+    year  = standard_year(h_date)
+    year1 = (year - 1) if (month >= TISHRI) else year
+    start = fixed_from_hebrew(hebrew_date(year1, NISAN, 1))
+    g_year = gregorian_year_from_fixed(start + 60)
+    new_year = observational_hebrew_first_of_nisan(g_year)
+    midmonth = new_year + iround(mpf(29.5) * (month - 1)) + 15
+    moon = phasis_on_or_before(midmonth, HEBREW_LOCATION)
+    date = moon + day - 1
+    return (date - 1) if early_month(midmonth, HEBREW_LOCATION) else date
+
+
 @ Round-trip and spot tests for the Ultimate-Edition calendars. The authoritative
 cross-implementation check is the SBCL differential harness
 (\texttt{tools/diff\_check.py}); these are committed regression tests.
@@ -7549,6 +7642,13 @@ class `UltimateCalendarsTestCase(unittest.TestCase):
         self.assertEqual(g(mawlid(2020)[0]), [2020, OCTOBER, 29])
         self.assertEqual([g(d) for d in unlucky_fridays(2020)],
                          [[2020, NOVEMBER, 13], [2020, MARCH, 13]])
+
+    def testAltObservationalRoundTrip(self):
+        for rd in self.rd:
+            self.assertEqual(alt_fixed_from_observational_islamic(
+                alt_observational_islamic_from_fixed(rd)), rd)
+            self.assertEqual(alt_fixed_from_observational_hebrew(
+                alt_observational_hebrew_from_fixed(rd)), rd)
 
 
 @
