@@ -98,6 +98,25 @@ def amod(x, y):
     """Return the same as a % b with b instead of 0."""
     return y + (mod(x, -y))
 
+# Ultimate Edition (App. D, eqn 1.30): mod shifted into the interval [a, b).
+def mod3(x, a, b):
+    """Return x shifted into the range [a..b). Returns x if a == b."""
+    if a == b:
+        return x
+    return a + mod(x - a, b - a)
+
+# Ultimate Edition (App. D, eqn 1.42): mixed-radix representation of x.
+def to_radix(x, b, c=None):
+    """Return the radix notation of x with radices b (and fractional radices c)."""
+    if c is None:
+        if not b:
+            return [x]
+        return (to_radix(quotient(x, b[-1]), b[:-1]) + [mod(x, b[-1])])
+    prod_c = 1
+    for v in c:
+        prod_c *= v
+    return to_radix(x * prod_c, b + c)
+
 
 # see lines 259-264 in calendrica-3.0.cl
 def next(i, p):
@@ -5392,6 +5411,122 @@ def tibetan_new_year(g_year):
     return list_range([losar(t_year - 1), losar(t_year)],
                       gregorian_year_range(g_year))
 
+
+
+##################################
+# akan day-name cycle (D.1.5)    #
+##################################
+# Ultimate Edition App. D, eqns 1.79-1.85.
+AKAN_DAY_NAME_EPOCH = rd(37)
+
+def akan_name(prefix, stem):
+    """Return an Akan name from its prefix (1..6) and stem (1..7)."""
+    return [prefix, stem]
+
+def akan_prefix(name):
+    return name[0]
+
+def akan_stem(name):
+    return name[1]
+
+def akan_day_name(n):
+    """Return the n-th name of the Akan day-name cycle."""
+    return akan_name(amod(n, 6), amod(n, 7))
+
+def akan_name_difference(a_name1, a_name2):
+    """Return the number of names from Akan name a_name1 to a_name2."""
+    prefix1 = akan_prefix(a_name1)
+    prefix2 = akan_prefix(a_name2)
+    stem1   = akan_stem(a_name1)
+    stem2   = akan_stem(a_name2)
+    prefix_difference = prefix2 - prefix1
+    stem_difference   = stem2 - stem1
+    return amod(prefix_difference + 36 * (stem_difference - prefix_difference),
+                42)
+
+def akan_name_from_fixed(date):
+    """Return the Akan day name of fixed date, date."""
+    return akan_day_name(date - AKAN_DAY_NAME_EPOCH)
+
+def akan_day_name_on_or_before(name, date):
+    """Return the fixed date of the latest date on or before fixed date, date,
+    that has Akan name, name."""
+    return mod3(akan_name_difference(akan_name_from_fixed(0), name),
+                date, date - 42)
+
+
+##################################
+# icelandic calendar (chapter 6) #
+##################################
+# Ultimate Edition App. D, eqns 6.1-6.10.
+ICELANDIC_EPOCH = fixed_from_gregorian(gregorian_date(1, APRIL, 19))
+
+def icelandic_date(year, season, week, weekday):
+    """Return an Icelandic date data structure."""
+    return [year, season, week, weekday]
+
+def icelandic_year(i_date):
+    return i_date[0]
+
+def icelandic_season(i_date):
+    return i_date[1]
+
+def icelandic_week(i_date):
+    return i_date[2]
+
+def icelandic_weekday(i_date):
+    return i_date[3]
+
+def icelandic_summer(i_year):
+    """Return the fixed date of the start of Icelandic summer in year, i_year."""
+    apr19 = (ICELANDIC_EPOCH + 365 * (i_year - 1) +
+             sigma([to_radix(i_year, [4, 25, 4]), [97, 24, 1, 0]],
+                   lambda y, a: y * a))
+    return kday_on_or_after(THURSDAY, apr19)
+
+def icelandic_winter(i_year):
+    """Return the fixed date of the start of Icelandic winter in year, i_year."""
+    return icelandic_summer(i_year + 1) - 180
+
+def icelandic_leap_year(i_year):
+    """Return True if i_year is an Icelandic leap year."""
+    return (icelandic_summer(i_year + 1) - icelandic_summer(i_year)) != 364
+
+def fixed_from_icelandic(i_date):
+    """Return the fixed date of Icelandic date, i_date."""
+    year    = icelandic_year(i_date)
+    season  = icelandic_season(i_date)
+    week    = icelandic_week(i_date)
+    weekday = icelandic_weekday(i_date)
+    start = icelandic_summer(year) if (season == SUMMER) else icelandic_winter(year)
+    shift = THURSDAY if (season == SUMMER) else SATURDAY
+    return start + 7 * (week - 1) + mod(weekday - shift, 7)
+
+def icelandic_from_fixed(date):
+    """Return the Icelandic date corresponding to fixed date, date."""
+    approx = quotient(date - ICELANDIC_EPOCH + 369, mpf(146097) / 400)
+    year   = approx if (date >= icelandic_summer(approx)) else (approx - 1)
+    season = SUMMER if (date < icelandic_winter(year)) else WINTER
+    start  = icelandic_summer(year) if (season == SUMMER) else icelandic_winter(year)
+    week   = 1 + quotient(date - start, 7)
+    weekday = day_of_week_from_fixed(date)
+    return icelandic_date(year, season, week, weekday)
+
+def icelandic_month(i_date):
+    """Return the (1..) month of the Icelandic date, i_date."""
+    date      = fixed_from_icelandic(i_date)
+    year      = icelandic_year(i_date)
+    season    = icelandic_season(i_date)
+    midsummer = icelandic_winter(year) - 90
+    if (season == WINTER):
+        start = icelandic_winter(year)
+    elif (date >= midsummer):
+        start = midsummer - 90
+    elif (date < (icelandic_summer(year) + 90)):
+        start = icelandic_summer(year)
+    else:
+        start = midsummer
+    return 1 + quotient(date - start, 30)
 
 
 # That's all folks!
