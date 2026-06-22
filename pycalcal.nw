@@ -938,6 +938,17 @@ def `mjd_from_fixed(date):
     """Return the modified Julian day corresponding to fixed date 'rd'."""
     return date - MJD_EPOCH
 
+# Ultimate Edition (App. D): Unix time representation.
+UNIX_EPOCH = rd(719163)
+
+def `moment_from_unix(s):
+    """Return the moment corresponding to Unix time (seconds) s."""
+    return UNIX_EPOCH + (s / (24 * 60 * 60))
+
+def `unix_from_moment(tee):
+    """Return the Unix time (seconds) corresponding to moment tee."""
+    return 24 * 60 * 60 * (tee - UNIX_EPOCH)
+
 @
 
 \subsection{Unit tests}
@@ -5335,6 +5346,23 @@ def `future_bahai_from_fixed(date):
         bahai_date(major, cycle, year, month, 1))
 
     return bahai_date(major, cycle, year, month, day)
+
+
+# Ultimate Edition renamed the "future" Bahai calendar to the "astronomical"
+# Bahai calendar (App. D, eqns 16.6-16.8); the algorithm is unchanged, so these
+# are the 4th-edition canonical names for the existing functions. Verified
+# identical to the future-bahai functions by the SBCL differential harness.
+def `astro_bahai_new_year_on_or_before(date):
+    """Ultimate-Edition name for future_bahai_new_year_on_or_before."""
+    return future_bahai_new_year_on_or_before(date)
+
+def `fixed_from_astro_bahai(b_date):
+    """Ultimate-Edition name for fixed_from_future_bahai."""
+    return fixed_from_future_bahai(b_date)
+
+def `astro_bahai_from_fixed(date):
+    """Ultimate-Edition name for future_bahai_from_fixed."""
+    return future_bahai_from_fixed(date)
 
 
 # see lines 4203-4213 in calendrica-3.0.cl
