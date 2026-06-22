@@ -3365,12 +3365,12 @@ def nth_new_moon(n):
     approx = (J2000 +
               poly(c, [mpf(5.09766),
                        MEAN_SYNODIC_MONTH * mpf(1236.85),
-                       mpf(0.0001437),
+                       mpf(0.00015437),
                        mpf(-0.000000150),
                        mpf(0.00000000073)]))
     cap_E = poly(c, [1, mpf(-0.002516), mpf(-0.0000074)])
     solar_anomaly = poly(c, deg([mpf(2.5534),
-                                 (mpf(1236.85) * mpf(29.10535669)),
+                                 (mpf(1236.85) * mpf(29.10535670)),
                                  mpf(-0.0000014), mpf(-0.00000011)]))
     lunar_anomaly = poly(c, deg([mpf(201.5643),
                                  (mpf(385.81693528) * mpf(1236.85)),
