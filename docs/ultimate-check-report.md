@@ -170,3 +170,34 @@ calendar present):
 `alt-birkath-ha-hama` (a holiday, not a calendar) is not ported: it needs
 `samuel-season-in-gregorian` → `cycle-in-gregorian`, helpers beyond the calendar set. All
 calendar conversions and the other holidays are complete.
+
+## Lunar-coefficient investigation (Appendix C panel p.761)
+
+Prompted by the lunar columns not matching the printed Appendix C. Findings:
+
+- **Lunar latitude** — the 4th edition revised one coefficient: `lunar-latitude`'s
+  `args-lunar-anomaly[57]` changed from `-2` (3rd ed.) to `-1` (confirmed in the
+  App-D OCR, eqn 14.63; absent from the 3rd-ed errata). pycalcal had `-2`. The
+  differential harness missed it because it tested only lunar-longitude/phase, not
+  latitude (whose `args-moon-node` are all ±1, making it uniquely sensitive). Ported
+  → `lunar_latitude(-214193) = 2.4527590` (matches Lisp/book) and `lunar_altitude`
+  at Mecca = `-13.163184` (matches the book exactly).
+
+- **Next new moon** — `nth-new-moon` had two coefficients still off: `approx` c²
+  `0.0001437`→`0.00015437` (dropped digit in pycalcal) and `solar-anomaly` c²
+  `29.10535669`→`29.10535670` (4th-ed revision). The other ~9 `nth-new-moon`
+  revisions were already incorporated via the 3rd-ed errata. Ported →
+  `new_moon_at_or_after(-214193) = -214174.605829` (matches Lisp/book).
+
+  Verified: 0 mismatches for `lunar_latitude` and `new_moon_at_or_after` vs the
+  Ultimate Lisp over 40 random dates.
+
+- **Lunar longitude** — `244.853905` from the faithful App-D code (3rd ed. ≡ 4th ed.
+  ≡ pycalcal ≡ repaired Lisp; coefficient tables verified identical). The book prints
+  `244.853005` (one digit off) with no erratum. Since the book's own moonrise/moonset
+  for the date are computed from `244.853905` and match pycalcal exactly, the printed
+  longitude cell is a **book typo**, not a code error.
+
+Net: the lunar latitude/altitude/new-moon columns now match the book; lunar
+longitude differs only by the book's print typo. Lunar altitude observer confirmed
+= Mecca (matched the printed value to all digits).
