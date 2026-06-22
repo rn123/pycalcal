@@ -2438,7 +2438,7 @@ def zone(location):
 MECCA = location(angle(21, 25, 24), angle(39, 49, 24), mt(298), days_from_hours(3))
 
 # see lines 5898-5901 in calendrica-3.0.cl
-JERUSALEM = location(31.8, 35.2, mt(800), days_from_hours(2))
+JERUSALEM = location(deg(mpf(31.78)), deg(mpf(35.24)), mt(740), days_from_hours(2))
 
 BRUXELLES = location(angle(4, 21, 17), angle(50, 50, 47), mt(800), days_from_hours(1))
 
@@ -3669,7 +3669,8 @@ def observational_islamic_from_fixed(date):
     return islamic_date(year, month, day)
 
 # see lines 5898-5901 in calendrica-3.0.cl
-JERUSALEM = location(deg(mpf(31.8)), deg(mpf(35.2)), mt(800), days_from_hours(2))
+# Ultimate Edition revised the Jerusalem location to (31.78, 35.24, 740m).
+JERUSALEM = location(deg(mpf(31.78)), deg(mpf(35.24)), mt(740), days_from_hours(2))
 
 # see lines 5903-5918 in calendrica-3.0.cl
 def astronomical_easter(g_year):
