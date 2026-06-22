@@ -152,6 +152,20 @@ Residual `*-from-fixed` differences after the port (≤ a handful of dates each:
 
 **Test suite: 102 tests, all passing.** Panel-5 astronomy re-baselined to Ultimate.
 
+### Capstone differential (final acceptance)
+
+A final `tools/diff_check.py` run over **615 dates across all calendars** (with every new
+calendar present):
+
+- **61 functions agree exactly / within tolerance** (was 45 pre-port) — all five new
+  calendars, both alt-observational variants, `mayan-year-bearer`, and the float astronomy
+  (`solar-longitude`, `lunar-longitude`, `lunar-phase`) included.
+- **0 functions "new in Ultimate with no pycalcal equivalent"** — the `*-from-fixed` gap is
+  fully closed.
+- **3 functions differ**, all sub-1% and all the same ~1e-9 mpmath-vs-IEEE-double boundary
+  noise (each off by one day at a sunset/equinox boundary): `astro-bahai` (21/615),
+  `observational-hebrew` (3/615), `chinese` (2/615).
+
 ### Deferred (single remaining item)
 `alt-birkath-ha-hama` (a holiday, not a calendar) is not ported: it needs
 `samuel-season-in-gregorian` → `cycle-in-gregorian`, helpers beyond the calendar set. All
